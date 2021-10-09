@@ -14,21 +14,13 @@ char *strcat(char *s1, const char *s2) {
     return b;
 }
 
-char *
-fmtname(char *path) {
-    static char buf[DIRSIZ + 1];
-    char *p;
-
+char *fmtname(char *path) {
+   char *p;
     // Find first character after last slash.
-    for (p = path + strlen(path); p >= path && *p != '/'; p--);
+    for(p=path+strlen(path); p >= path && *p != '/'; p--)
+      ;
     p++;
-
-    // Return blank-padded name.
-    if (strlen(p) >= DIRSIZ)
-        return p;
-    memmove(buf, p, strlen(p));
-    memset(buf + strlen(p), ' ', DIRSIZ - strlen(p));
-    return buf;
+    return p;
 }
 
 
@@ -47,7 +39,6 @@ void find(char *path, char *target) {
         close(fd);
         return;
     }
-    printf("file type %d\n",st.type);
     if (st.type != T_DIR) {
         fprintf(2, "find: not dir %s\n", path);
         return;
@@ -70,27 +61,20 @@ void find(char *path, char *target) {
             printf("find: cannot stat %s\n", buf);
             continue;
         }
-
         char *fileName = fmtname(buf);
-         printf("file name : %s\n",fileName);
-         printf("%d,%d\n",strcmp(fileName, ".") ==0, strcmp(fileName, "..")==0);
-        if (strcmp(fileName, ".") || strcmp(fileName, "..")){
+        if (strcmp(fileName, ".")==0 || strcmp(fileName, "..")==0){
             continue;
         }
-        char* newPath = strcat(strcat(path,"/"),fileName);
-        printf("new pth :%s\n",newPath);
+        char tmp[512];
+        strcpy(tmp, path);
+        char* newPath = strcat(strcat(tmp,"/"),fileName);
+         if (strcmp(fileName, target) ==0)
+                    {
+                        printf("%s\n",newPath);
+                    }
         if (st.type == T_DIR) {
             find(newPath, target);
-            continue;
         }
-        if (st.type == T_FILE) {
-            if (strcmp(fileName, target))
-            {
-                printf("%s\n",newPath);
-            }
-            continue;
-        }
-
     }
     close(fd);
 }
@@ -102,7 +86,6 @@ main(int argc, char *argv[]) {
         fprintf(2, "error\n");
         exit(0);
     }
-     printf("path :%s, target:%s\n",argv[1],argv[2]);
     find(argv[1], argv[2]);
     exit(0);
 }
